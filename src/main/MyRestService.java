@@ -5,7 +5,7 @@
 
 // test comment added - Lisa Saffel - to test github
 // test second comment added - Lisa Saffel 
-// test third comment added
+// test third comment added (these can all be removed later. It was only to test commits and pushes to GitHub)
 
 package main;
 
