@@ -3,9 +3,6 @@
 //Group 1
 //10/12/2020
 
-// test comment added - Lisa Saffel - to test github
-// test second comment added - Lisa Saffel 
-// test third comment added (these can all be removed later. It was only to test commits and pushes to GitHub)
 
 package main;
 
@@ -1285,8 +1282,8 @@ public class MyRestService {
 			return response;
 			
 		}
-		
-//PACKAGE
+// End of FEE section 
+//PACKAGE-------------------------------------------------------------------------------------------------------------------
 		
 
 		// http://localhost:8080/JSPDay3RESTExample/rs/package/getpackages
