@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -36,14 +37,14 @@ public class MyRestService {
 	
 	//AFFILIATION--------------------------------------------------------------------------------------------------------------------------------------------
 	
-	// http://localhost:8080/JSPDay3RESTExample/rs/affiliation/updateaffiliation/APEGA
+	// http://localhost:8080/JSPDay3RESTExample/rs/affiliation/postaffiliation/{oldAffiliationId}
 
-	@PUT
-	@Path("/affiliation/updateaffiliation/{AffiliationId}")
-	@Consumes({MediaType.APPLICATION_JSON})
-	@Produces(MediaType.TEXT_PLAIN)
+	@POST
+	@Path("/affiliation/postaffiliation/{affilitationId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	
-	public String updateAffiliation(String jsonString, @PathParam("affilitationId") String oldAffilitationId)
+	public String postAffiliation(String jsonString, @PathParam("affilitationId") String oldAffilitationId)
 	{
 		JSONParser parser= new JSONParser();
 		JSONObject obj; 
@@ -77,15 +78,15 @@ public class MyRestService {
 				
 		
 		
-		return message;
+		return "{ 'message':'"+message+"' }";
 	}
 	
 
-	// http://localhost:8080/JSPDay3RESTExample/rs/affiliation/putaffiliation
+	// http://localhost:8080/JSPDay3RESTExample/rs/affiliation/puttaffiliation
 	@PUT
-	@Path("/affiliation/putaffiliation")
-	@Consumes({MediaType.APPLICATION_JSON})
-	@Produces(MediaType.TEXT_PLAIN)
+	@Path("/affiliation/puttaffiliation")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	
 	public String putAffiliation(String jsonString)
 	{
@@ -120,7 +121,7 @@ public class MyRestService {
 				
 		
 		
-		return message;
+		return "{ 'message':'"+message+"' }";
 	}
 	
 	// http://localhost:8080/JSPDay3RESTExample/rs/affiliation/deleteaffiliation/APEGA
@@ -456,14 +457,14 @@ public class MyRestService {
 //BOOKINGS 
 		
 		//Update Booking in the database
-		// http://localhost:8080/JSPDay3RESTExample/rs/booking/updatebooking
+		// http://localhost:8080/JSPDay3RESTExample/rs/booking/postbooking
 				
-		@PUT
-		@Path("/booking/updatebooking")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		@POST
+		@Path("/booking/postbooking")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
-		public String updateBooking(String jsonString)
+		public String postBooking(String jsonString)
 		
 		{
 			Double tc;
@@ -534,15 +535,15 @@ public class MyRestService {
 					
 			
 			
-			return message;
+			return "{ 'message':'" + message + "' }";
 		}
 
 		//Insert Booking in the database
 		// http://localhost:8080/JSPDay3RESTExample/rs/booking/putbooking
 		@PUT
 		@Path("/booking/putbooking")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
 		public String putBooking(String jsonString)
 		{
@@ -559,13 +560,43 @@ public class MyRestService {
 				PreparedStatement stmt =conn.prepareStatement(sql);
 				stmt.setString(1, (String) obj.get("BookingDate"));
 				stmt.setString(2, (String) obj.get("BookingNo"));
-				stmt.setString(3, (String) obj.get("TripTypeId"));
+				stmt.setString(3,null);
+				try {
+					Connection conn1 = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+					Statement stmt1= conn1.createStatement();
+					ResultSet rs1 = stmt1.executeQuery("Select triptypeid from triptypes");
+	
+					ArrayList<String> trip = new ArrayList<>();
+					int k=0;
+					while (rs1.next())
+					{
+						trip.add(rs1.getString(1));
+						k++;
+					}
+				
+					conn1.close();
+					String tript=(String) obj.get("TripTypeId");
+					
+					for (int i=0; i<k; i++)
+					{
+						if(tript==trip.get(i))
+						{
+							stmt.setString(3, (String) obj.get("TripTypeId"));
+							break;
+						}
+					}
+					
+				} catch ( SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
 				if ((String)obj.get("TravelerCount")==null)
 					stmt.setString(4, (String)obj.get("TravelerCount"));
 				else
 					try {
 						tc = Double.parseDouble((String)obj.get("TravelerCount"));
+						
 						stmt.setDouble(4, tc);
 					} catch (NumberFormatException e) {
 						// TODO Auto-generated catch block
@@ -577,7 +608,10 @@ public class MyRestService {
 				else
 					try {
 						cust = Integer.parseInt((String)obj.get("CustomerId"));
-						stmt.setInt(5,cust);
+						if(cust==0)
+							stmt.setString(5, null);
+						else
+							stmt.setInt(5,cust);
 					} catch (NumberFormatException e) {
 						// TODO Auto-generated catch block
 						stmt.setString(5, null);
@@ -588,6 +622,9 @@ public class MyRestService {
 				else
 					try {
 						pckg=Integer.parseInt((String)obj.get("PackageId"));
+						if (pckg==0)
+							stmt.setString(6,null );
+						else
 						stmt.setInt(6,pckg );
 					} catch (NumberFormatException e) {
 						// TODO Auto-generated catch block
@@ -609,9 +646,7 @@ public class MyRestService {
 				e.printStackTrace();
 			}
 					
-			
-			
-			return message;
+			return "{ 'message':'" + message + "' }";
 		}	
 	
 		//Find BookingId by BookingNo
@@ -621,7 +656,7 @@ public class MyRestService {
 				@Produces(MediaType.TEXT_PLAIN)
 				public String findBookingIdByBookingNo(@PathParam("bookingNo") String bookingNo)
 				{
-					String response =null;
+					String response ="";
 					try {
 						Class.forName("org.mariadb.jdbc.Driver");
 						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
@@ -633,11 +668,9 @@ public class MyRestService {
 						{
 							response =rs.getString(1);
 						}
-
 						conn.close();
 						
 					} catch (ClassNotFoundException | SQLException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					
@@ -912,14 +945,14 @@ public class MyRestService {
 		
 
 		 //Get List of Booking Details by BookingId
-		// http://localhost:8080/JSPDay3RESTExample/rs/bookingdetail/getnookingdetailbybookingid/{bookingId}
+		// http://localhost:8080/JSPDay3RESTExample/rs/bookingdetail/getbookingdetailsbybookingid/{bookingId}
 				
 				@GET
-				@Path("/bookingdetail/getnookingdetailbybookingid/{bookingId}")
+				@Path("/bookingdetail/getbookingdetailsbybookingid/{bookingId}")
 				@Produces(MediaType.APPLICATION_JSON)
 				public String getBookingDetailByBookingId(@PathParam("bookingId") int bookingId)
 				{
-					String response =null;
+					String response ="";
 					try {
 						Class.forName("org.mariadb.jdbc.Driver");
 						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
@@ -995,14 +1028,14 @@ public class MyRestService {
 		
 //CLASS------------------------------------------------------------------------------------------------------
 				
-				// http://localhost:8080/JSPDay3RESTExample/rs/class/updateclass/{oldBookClassId}
+				// http://localhost:8080/JSPDay3RESTExample/rs/class/postclass/{oldBookClassId}
 
-				@PUT
-				@Path("/class/updateclass/{bookClassId}")
-				@Consumes({MediaType.APPLICATION_JSON})
-				@Produces(MediaType.TEXT_PLAIN)
+				@POST
+				@Path("/class/postclass/{bookClassId}")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
 				
-				public String updateClassn(String jsonString, @PathParam("bookClassId") String oldBookClassId)
+				public String postClass(String jsonString, @PathParam("bookClassId") String oldBookClassId)
 				{
 					JSONParser parser= new JSONParser();
 					JSONObject obj; 
@@ -1027,24 +1060,18 @@ public class MyRestService {
 							message="Class Update failed";
 						}
 						conn.close();
-						
-						//ResultSet rs=stmt.executeQuery();
 					} catch (ClassNotFoundException | SQLException | ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-							
-					
-					
-					return message;
+					return "{ 'message':'" + message + "' }";
 				}
 				
 
 				// http://localhost:8080/JSPDay3RESTExample/rs/class/putclass
 				@PUT
 				@Path("/class/putclass")
-				@Consumes({MediaType.APPLICATION_JSON})
-				@Produces(MediaType.TEXT_PLAIN)
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
 				
 				public String putAClass(String jsonString)
 				{
@@ -1070,16 +1097,10 @@ public class MyRestService {
 							message="Class Insert failed";
 						}
 						conn.close();
-						
-						//ResultSet rs=stmt.executeQuery();
 					} catch (ClassNotFoundException | SQLException | ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-							
-					
-					
-					return message;
+					return "{ 'message':'" + message + "' }";
 				}
 				
 				// http://localhost:8080/JSPDay3RESTExample/rs/class/deleteclass/{ bookclassId }
@@ -1403,8 +1424,8 @@ public class MyRestService {
 				// http://localhost:8080/JSPDay3RESTExample/rs/product/putproduct
 				@PUT
 				@Path("/product/putproduct")
-				@Consumes({MediaType.APPLICATION_JSON})
-				@Produces(MediaType.TEXT_PLAIN)
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
 				
 				public String putProduct(String jsonString)
 				{
@@ -1427,23 +1448,17 @@ public class MyRestService {
 							message=" Product Insert failed";
 						}
 						conn.close();
-						
-						//ResultSet rs=stmt.executeQuery();
 					} catch (ClassNotFoundException | SQLException | ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-							
-					
-					
-					return message;
+					return "{ 'message':'" + message + "' }";
 				}
 				
-				// http://localhost:8080/JSPDay3RESTExample/rs/product/updateproduct
-				@PUT
-				@Path("/product/updateproduct")
-				@Consumes({MediaType.APPLICATION_JSON})
-				@Produces(MediaType.TEXT_PLAIN)
+				// http://localhost:8080/JSPDay3RESTExample/rs/product/postproduct
+				@POST
+				@Path("/product/postproduct")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
 				
 				public String updateProduct(String jsonString)
 				{
@@ -1468,16 +1483,10 @@ public class MyRestService {
 							message="Product Update failed";
 						}
 						conn.close();
-						
-						//ResultSet rs=stmt.executeQuery();
 					} catch (ClassNotFoundException | SQLException | ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-							
-					
-					
-					return message;
+					return "{ 'message':'" + message + "' }";
 				}
 				
 				
@@ -1715,14 +1724,14 @@ public class MyRestService {
 		
 		//REGIONS------------------------------------------------------------------------------------------------------------------------
 		
-		// http://localhost:8080/JSPDay3RESTExample/rs/region/updateregion/{oldRegionId}
+		// http://localhost:8080/JSPDay3RESTExample/rs/region/postregion/{oldRegionId}
 
-		@PUT
-		@Path("/region/updateregion/{oldRegionId}")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		@POST
+		@Path("/region/postregion/{oldRegionId}")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
-		public String updateRegion(String jsonString, @PathParam("oldRegionId") String oldRegionId)
+		public String postRegion(String jsonString, @PathParam("oldRegionId") String oldRegionId)
 		{
 			JSONParser parser= new JSONParser();
 			JSONObject obj; 
@@ -1746,24 +1755,18 @@ public class MyRestService {
 					message="Region Update failed";
 				}
 				conn.close();
-				
-				//ResultSet rs=stmt.executeQuery();
 			} catch (ClassNotFoundException | SQLException | ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-					
-			
-			
-			return message;
+			return "{ 'message':'" + message + "' }";
 		}
 		
 
 		// http://localhost:8080/JSPDay3RESTExample/rs/region/putregion
 		@PUT
 		@Path("/region/putregion")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
 		public String putRegion(String jsonString)
 		{
@@ -1788,16 +1791,10 @@ public class MyRestService {
 					message="Region Insert failed";
 				}
 				conn.close();
-				
-				//ResultSet rs=stmt.executeQuery();
 			} catch (ClassNotFoundException | SQLException | ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-					
-			
-			
-			return message;
+			return "{ 'message':'"+ message + "' }";
 		}
 		
 		// http://localhost:8080/JSPDay3RESTExample/rs/region/deleteregion/{regionId}
@@ -1881,14 +1878,46 @@ public class MyRestService {
 		}
 		
 		//REWARD-------------------------------------------------------------------------------------------------------------------
-		// http://localhost:8080/JSPDay3RESTExample/rs/reward/updatereward/{rewardId}
-
-		@PUT
-		@Path("/reward/updatereward/{rewardId}")
-		@Consumes({MediaType.APPLICATION_JSON})
+		 //Find next reward Id from Database
+		// http://localhost:8080/JSPDay3RESTExample/rs/reward/newreward
+		@GET
+		@Path("/reward/newreward")
 		@Produces(MediaType.TEXT_PLAIN)
+		public String newReward()
+		{
+			String response ="";
+			try {
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+				Statement stmt= conn.createStatement();
+				ResultSet rs = stmt.executeQuery("Select RewardId from Rewards order by RewardId DESC limit 1");
+				if(rs.next())
+				{
+					try {
+						int next = Integer.parseInt( rs.getString(1));
+						response=Integer.toString(next+1);
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}
+				}
+				conn.close();
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}		
+			return response;
+		}
 		
-		public String updateReward(String jsonString, @PathParam("rewardId") int rewardId)
+		
+		
+		//Update Reward
+		// http://localhost:8080/JSPDay3RESTExample/rs/reward/postreward
+		@POST
+		@Path("/reward/postreward")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		
+		public String postReward(String jsonString)
 		{
 			JSONParser parser= new JSONParser();
 			JSONObject obj; 
@@ -1912,24 +1941,18 @@ public class MyRestService {
 					message="reward Update failed";
 				}
 				conn.close();
-				
-				//ResultSet rs=stmt.executeQuery();
 			} catch (ClassNotFoundException | SQLException | ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-					
-			
-			
-			return message;
+			return "{ 'message':'"+ message + "' }";
 		}
 		
-
+		//Insert Reward
 		// http://localhost:8080/JSPDay3RESTExample/rs/reward/putreward
 		@PUT
 		@Path("/reward/putreward")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
 		public String putReward(String jsonString)
 		{
@@ -1955,20 +1978,14 @@ public class MyRestService {
 					message="Reward Insert failed";
 				}
 				conn.close();
-				
-				//ResultSet rs=stmt.executeQuery();
 			} catch (ClassNotFoundException | SQLException | ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-					
-			
-			
-			return message;
+			return "{ 'message':'"+message +"' }";
 		}
 		
+		//Delete Reward
 		// http://localhost:8080/JSPDay3RESTExample/rs/reward/deletereward/{ rewardId }
-		
 		@DELETE
 		@Path("reward/deletereward/{ rewardId }")
 		//@Consumes({MediaType.APPLICATION_JSON})
@@ -2007,9 +2024,8 @@ public class MyRestService {
 		
 		
 		
-		
+		//Get All Rewards
 		// http://localhost:8080/JSPDay3RESTExample/rs/reward/getrewards
-		
 		@GET
 		@Path("/reward/getrewards")
 		@Produces(MediaType.APPLICATION_JSON)
@@ -2034,19 +2050,48 @@ public class MyRestService {
 					}
 					jsonArray.add(obj);
 				}
-				
 				response = jsonArray.toJSONString();
 				conn.close();
 				
 			} catch (ClassNotFoundException | SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-			
-			return response;
-			
+			}			
+			return response;		
 		}
 	//SUPPLIER---------------------------------------------------------------------------------------------------------------------------
+
+		 //Find next supplier Id from Database
+		// http://localhost:8080/JSPDay3RESTExample/rs/supplier/newsupplier
+		@GET
+		@Path("/supplier/newsupplier")
+		@Produces(MediaType.TEXT_PLAIN)
+		public String newSupplier()
+		{
+			String response ="";
+			try {
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+				Statement stmt= conn.createStatement();
+				ResultSet rs = stmt.executeQuery("Select SupplierId from Suppliers order by SupplierId DESC limit 1");
+				if(rs.next())
+				{
+					try {
+						int next = Integer.parseInt( rs.getString(1));
+						response=Integer.toString(next+1);
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}
+				}
+				conn.close();
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}		
+			return response;
+		}
+		
+		
+		
 		
 		// http://localhost:8080/JSPDay3RESTExample/rs/supplier/getsupplier/{ supplierId }
 		@GET
@@ -2076,7 +2121,6 @@ public class MyRestService {
 				conn.close();
 				
 			} catch (ClassNotFoundException | SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -2087,8 +2131,8 @@ public class MyRestService {
 		// http://localhost:8080/JSPDay3RESTExample/rs/supplier/putsupplier
 		@PUT
 		@Path("/supplier/putsupplier")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
 		public String putSupplier(String jsonString)
 		{
@@ -2112,23 +2156,17 @@ public class MyRestService {
 					message=" Supplier Insert failed";
 				}
 				conn.close();
-				
-				//ResultSet rs=stmt.executeQuery();
 			} catch (ClassNotFoundException | SQLException | ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-					
-			
-			
-			return message;
+			return "{ 'message':'" + message + "' }";
 		}
 		
-		// http://localhost:8080/JSPDay3RESTExample/rs/supplier/updatesupplier
-		@PUT
-		@Path("/supplier/updatesupplier")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		// http://localhost:8080/JSPDay3RESTExample/rs/supplier/postsupplier
+		@POST
+		@Path("/supplier/postsupplier")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
 		public String updateSupplier(String jsonString)
 		{
@@ -2153,16 +2191,10 @@ public class MyRestService {
 					message="Supplier Update failed";
 				}
 				conn.close();
-				
-				//ResultSet rs=stmt.executeQuery();
 			} catch (ClassNotFoundException | SQLException | ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-					
-			
-			
-			return message;
+			return "{ 'message':'"+message +"' }";
 		}
 		
 		
@@ -2369,12 +2401,12 @@ public String getSupplierByProductId()
 		}
 		
 //TRIP TYPES
-		// http://localhost:8080/JSPDay3RESTExample/rs/tritype/updatetruptype/{oldTripTypeId}
+		// http://localhost:8080/JSPDay3RESTExample/rs/tritype/posttriptype/{oldTripTypeId}
 
-				@PUT
-				@Path("/tritype/updatetruptype/{oldTripTypeId}")
-				@Consumes({MediaType.APPLICATION_JSON})
-				@Produces(MediaType.TEXT_PLAIN)
+				@POST
+				@Path("/tritype/posttriptype/{oldTripTypeId}")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
 				
 				public String updateTripType(String jsonString, @PathParam("oldTripTypeId") String oldTripTypeId)
 				{
@@ -2400,16 +2432,10 @@ public String getSupplierByProductId()
 							message="Trip Type Update failed";
 						}
 						conn.close();
-						
-						//ResultSet rs=stmt.executeQuery();
 					} catch (ClassNotFoundException | SQLException | ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-							
-					
-					
-					return message;
+					return "{ 'message':'"+message +"' }";
 				}
 				
 
@@ -2417,7 +2443,7 @@ public String getSupplierByProductId()
 				@PUT
 				@Path("/triptype/puttriptype")
 				@Consumes({MediaType.APPLICATION_JSON})
-				@Produces(MediaType.TEXT_PLAIN)
+				@Produces(MediaType.APPLICATION_JSON)
 				
 				public String putTripType(String jsonString)
 				{
@@ -2442,16 +2468,10 @@ public String getSupplierByProductId()
 							message="Trip Type Insert failed";
 						}
 						conn.close();
-						
-						//ResultSet rs=stmt.executeQuery();
 					} catch (ClassNotFoundException | SQLException | ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-							
-					
-					
-					return message;
+					return "{ 'message':'"+message +"' }";
 				}
 				
 				// http://localhost:8080/JSPDay3RESTExample/rs/triptype/deletetriptype/{ tripTypeId }
