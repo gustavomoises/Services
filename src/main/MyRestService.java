@@ -2274,10 +2274,7 @@ public class MyRestService {
 		}
 		
 
-
-
-
-
+		
 // http://localhost:8080/JSPDay3RESTExample/rs/supplier/getsupplierswithproducts/{ productId }
 
 @GET
@@ -2551,7 +2548,8 @@ public String getSupplierByProductId()
 				e.printStackTrace();
 			}
 			
-			return response;
-			
+			return response;			
 		}
+		
+		//SK
 }
