@@ -3,8 +3,7 @@
 //Group 1
 //10/12/2020
 
-//SK+Gustavo
-// Lisa Lisa Lisa Lisa Lisa
+// fjvusksbkszkvdkkdsdisvbkjsdAWciods
 
 package main;
 
