@@ -3,6 +3,7 @@
 //Group 1
 //10/12/2020
 
+//SK+Gustavo
 
 package main;
 
@@ -2551,5 +2552,5 @@ public String getSupplierByProductId()
 			return response;			
 		}
 		
-		//SK+Gustavo
+	
 }
