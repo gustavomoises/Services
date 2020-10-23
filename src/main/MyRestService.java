@@ -3,9 +3,6 @@
 //Group 1
 //10/12/2020
 
-// fjvusksbkszkvdkkdsdisvbkjsdAWciods
-
-//It is over - it really is over over over
 
 package main;
 
