@@ -2551,5 +2551,5 @@ public String getSupplierByProductId()
 			return response;			
 		}
 		
-		//SK
+		//SK+Gustavo
 }
