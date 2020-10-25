@@ -1,7 +1,8 @@
 //Author: Gustavo Lourenco Moises
 //Thread Project PROJ-207
 //Group 1
-//10/25/2020
+//10/25/2020 << Version as of Sunday, October 25th, 2:32 pm.
+// It might be helpful to put a time stamp on the version, as I just did above, so we all know which version and time we have. - Lisa
 
 
 package main;
