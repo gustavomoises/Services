@@ -1,8 +1,8 @@
 //Author: Gustavo Lourenco Moises
 //Thread Project PROJ-207
 //Group 1
-//10/25/2020 << Version as of Sunday, October 25th, 2:32 pm.
-// It might be helpful to put a time stamp on the version, as I just did above, so we all know which version and time we have. - Lisa
+// Every time there is a change, please add in a line with a date and time stamp and author and what section was modified, below
+//10/25/2020 << Version as of Sunday, October 25th, 3:46 pm --  Fee section added - Lisa Saffel
 
 
 package main;
@@ -1257,7 +1257,7 @@ public class MyRestService {
 			
 		}
 		
-//CUSTOMER
+//CUSTOMER ---------------------------------------------------------------------------------------------------------
 		
 
 		// http://localhost:8080/JSPDay3RESTExample/rs/customer/getcustomers
@@ -1337,8 +1337,127 @@ public class MyRestService {
 		
 		
 //FEE--------------------------------------------------------------------------------------------------------
+// Author: Lisa Saffel October 25th, 2020
 		
-		
+				// http://localhost:8081/JSPDay3RESTExample/rs/fee/postfee/{oldFeeId}
+
+				@POST
+				@Path("/fee/postfee/{feeId}")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
+				
+				public String postFee(String jsonString, @PathParam("feeId") String oldFeeId)
+				{
+					JSONParser parser= new JSONParser();
+					JSONObject obj; 
+					String sql="UPDATE `fees` SET `FeeId`=?,`FeeName`=?,`FeeDesc`=?, `FeeAmt`=? WHERE `FeeId`=?";
+					String message = null;
+					try {
+						obj= (JSONObject) parser.parse(jsonString);
+						Class.forName("org.mariadb.jdbc.Driver");
+						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						PreparedStatement stmt =conn.prepareStatement(sql);
+						stmt.setString(1, (String) obj.get("FeeId"));
+						stmt.setString(2, (String) obj.get("FeeName"));
+						stmt.setString(3, (String) obj.get("FeeDesc"));
+						Double feeAmount = Double.parseDouble((String) obj.get("FeeAmt"));
+						stmt.setDouble(4, feeAmount);
+						stmt.setString(5, (String) oldFeeId);
+
+						if(stmt.executeUpdate()>0)
+						{
+							message="Fee updated successfully";
+						}
+						else
+						{
+							message="Fee Update failed";
+						}
+						conn.close();
+					} catch (ClassNotFoundException | SQLException | ParseException e) {
+						e.printStackTrace();
+					}
+					return "{ 'message':'" + message + "' }";
+				}
+				
+
+				// http://localhost:8081/JSPDay3RESTExample/rs/fee/putfee
+				@PUT
+				@Path("/fee/putfee")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
+				
+				public String putFee(String jsonString)
+				{
+					JSONParser parser= new JSONParser();
+					JSONObject obj; 
+					String sql="INSERT INTO `fees`(`FeeId`, `FeeName`, `FeeAmt`, `FeeDesc`) VALUES (?,?,?,?)";
+					String message = null;
+					try {
+						obj= (JSONObject) parser.parse(jsonString);
+						Class.forName("org.mariadb.jdbc.Driver");
+						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						PreparedStatement stmt =conn.prepareStatement(sql);
+						stmt.setString(1, (String) obj.get("FeeId"));
+						stmt.setString(2, (String) obj.get("FeeName"));
+						Double feeAmount = Double.parseDouble((String) obj.get("FeeAmt"));
+						stmt.setDouble(3, feeAmount);
+						stmt.setString(4, (String) obj.get("FeeDesc"));
+
+						if(stmt.executeUpdate()>0)
+						{
+							message="Fee inserted successfully";
+						}
+						else
+						{
+							message="Fee Insert failed";
+						}
+						conn.close();
+					} catch (ClassNotFoundException | SQLException | ParseException e) {
+						e.printStackTrace();
+					}
+					return "{ 'message':'" + message + "' }";
+				}
+				
+				// http://localhost:8081/JSPDay3RESTExample/rs/fee/deletefee/{ feeId }
+				
+				@DELETE
+				@Path("/fee/deletefee/{ feeId }")
+				//@Consumes({MediaType.APPLICATION_JSON})
+				@Produces(MediaType.TEXT_PLAIN)
+				
+				public String deleteFee(@PathParam("feeId") String feeId)
+				{
+				
+					String message = "";
+				
+				try {
+
+					Class.forName("org.mariadb.jdbc.Driver");
+					Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+					String sql="Delete from `fees` where FeeId=?";
+					PreparedStatement stmt =conn.prepareStatement(sql);
+					stmt.setString(1, feeId);
+					if(stmt.executeUpdate()>0)
+					{
+						message="Fee Deleted Successfully";
+					}
+					else
+					{
+						message="Fee Delete Failed.";
+					}
+					conn.close();
+					
+					
+				} catch (ClassNotFoundException | SQLException  e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				return message;
+			}		
+				
+	
+				
 		// http://localhost:8080/JSPDay3RESTExample/rs/fee/getfees
 		
 		@GET
