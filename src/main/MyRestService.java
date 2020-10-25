@@ -480,7 +480,36 @@ public class MyRestService {
 				PreparedStatement stmt =conn.prepareStatement(sql);
 				stmt.setString(1, (String) obj.get("BookingDate"));
 				stmt.setString(2, (String) obj.get("BookingNo"));
-				stmt.setString(3, (String) obj.get("TripTypeId"));
+				stmt.setString(3, null);
+				try {
+					Connection conn1 = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+					Statement stmt1= conn1.createStatement();
+					ResultSet rs1 = stmt1.executeQuery("Select triptypeid from triptypes");
+	
+					ArrayList<String> trip = new ArrayList<>();
+					int k=0;
+					while (rs1.next())
+					{
+						trip.add(rs1.getString(1));
+						k++;
+					}
+				
+					conn1.close();
+					String tript=(String) obj.get("TripTypeId");
+					
+					for (int i=0; i<k; i++)
+					{
+						if(tript==trip.get(i))
+						{
+							stmt.setString(3, (String) obj.get("TripTypeId"));
+							break;
+						}
+					}
+					
+				} catch ( SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
 				if ((String)obj.get("TravelerCount")==null)
 					stmt.setString(4, (String)obj.get("TravelerCount"));
@@ -726,8 +755,8 @@ public class MyRestService {
 								
 				@PUT
 				@Path("/bookingdetail/putbookingdetail")
-				@Consumes({MediaType.APPLICATION_JSON})
-				@Produces(MediaType.TEXT_PLAIN)
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
 				
 				public String putBookingDetail(String jsonString)
 				
@@ -759,6 +788,9 @@ public class MyRestService {
 								stmt.setString(5, null);
 							}
 
+			
+						
+						
 						if ((String)obj.get("BasePrice")==null)
 							stmt.setString(6, (String)obj.get("BasePrice"));
 						else
@@ -780,9 +812,25 @@ public class MyRestService {
 								stmt.setString(7, null);
 							}
 						
+						
+						String reg =(String) obj.get("RegionId");
+						if (reg.equals(""))
+							stmt.setString(8, null);
+						else
 						stmt.setString(8, (String) obj.get("RegionId"));
+						
+						String cla =(String) obj.get("ClassId");
+						if (cla.equals(""))
+							stmt.setString(9, null);
+						else
 						stmt.setString(9, (String) obj.get("ClassId"));
+						
+						String fee =(String) obj.get("FeeId");
+						if (fee.equals(""))
+							stmt.setString(10, null);
+						else
 						stmt.setString(10, (String) obj.get("FeeId"));
+						
 
 							
 						if((String)obj.get("ProductSupplierId")==null)
@@ -790,6 +838,9 @@ public class MyRestService {
 						else
 							try {
 								cust = Integer.parseInt((String)obj.get("ProductSupplierId"));
+								if (cust==0)
+									stmt.setString(11, null);
+								else
 								stmt.setInt(11,cust);
 							} catch (NumberFormatException e) {
 								// TODO Auto-generated catch block
@@ -825,7 +876,7 @@ public class MyRestService {
 							
 					
 					
-					return message;
+					return "{ 'message':'" + message + "' }";
 				}		
 				
 		
@@ -835,15 +886,15 @@ public class MyRestService {
 		
 		
 		//Update Booking in the database
-		// http://localhost:8080/JSPDay3RESTExample/rs/bookingdetail/updatebookingdetail
+		// http://localhost:8080/JSPDay3RESTExample/rs/bookingdetail/postbookingdetail
 		
 						
-		@PUT
-		@Path("/bookingdetail/updatebookingdetail")
-		@Consumes({MediaType.APPLICATION_JSON})
-		@Produces(MediaType.TEXT_PLAIN)
+		@POST
+		@Path("/bookingdetail/postbookingdetail")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
 		
-		public String updateBookingDetail(String jsonString)
+		public String postBookingDetail(String jsonString)
 		
 		{
 			Double tc;
@@ -873,6 +924,9 @@ public class MyRestService {
 						stmt.setString(5, null);
 					}
 
+	
+				
+				
 				if ((String)obj.get("BasePrice")==null)
 					stmt.setString(6, (String)obj.get("BasePrice"));
 				else
@@ -894,16 +948,34 @@ public class MyRestService {
 						stmt.setString(7, null);
 					}
 				
+				String reg =(String) obj.get("RegionId");
+				if (reg.equals(""))
+					stmt.setString(8, null);
+				else
 				stmt.setString(8, (String) obj.get("RegionId"));
+				
+				String cla =(String) obj.get("ClassId");
+				if (cla.equals(""))
+					stmt.setString(9, null);
+				else
 				stmt.setString(9, (String) obj.get("ClassId"));
+				
+				String fee =(String) obj.get("FeeId");
+				if (fee.equals(""))
+					stmt.setString(10, null);
+				else
 				stmt.setString(10, (String) obj.get("FeeId"));
-
+				
+				
 					
 				if((String)obj.get("ProductSupplierId")==null)
 					stmt.setString(11, (String)obj.get("ProductSupplierId"));
 				else
 					try {
 						cust = Integer.parseInt((String)obj.get("ProductSupplierId"));
+						if (cust==0)
+							stmt.setString(11, null);
+						else
 						stmt.setInt(11,cust);
 					} catch (NumberFormatException e) {
 						// TODO Auto-generated catch block
@@ -919,6 +991,7 @@ public class MyRestService {
 						// TODO Auto-generated catch block
 						stmt.setString(12, null);
 					}
+
 					
 				stmt.setInt(13, Integer.parseInt((String)obj.get("BookingDetailId")));
 
@@ -940,7 +1013,7 @@ public class MyRestService {
 					
 			
 			
-			return message;
+			return "{ 'message':'" + message + "' }";
 		}		
 		
 
@@ -1650,6 +1723,46 @@ public class MyRestService {
 		
 		//PRODUCT-SUPPLIER-----------------------------------------------------------------------------------------------------------------
 		
+		
+		// http://localhost:8080/JSPDay3RESTExample/rs/productsupplier/getproductidsupplieridbypsid/{ productSupplierId }
+		@GET
+		@Path("/productsupplier/getproductidsupplieridbypsid/{ productSupplierId }")
+		@Produces(MediaType.APPLICATION_JSON)
+		public String getProductIdSupplierIdByPSId(@PathParam("productSupplierId") int productSupplierId)
+		{
+			String response =null;
+			try {
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+				String sql="SELECT DISTINCT ProductId, SupplierId FROM Products_suppliers WHERE ProductSupplierId=?";
+				PreparedStatement stmt =conn.prepareStatement(sql);
+				stmt.setInt(1, productSupplierId);
+				ResultSet rs=stmt.executeQuery();
+				ResultSetMetaData rsmd = rs.getMetaData();
+				JSONObject obj = new JSONObject();
+				if(rs.next())
+				{
+					for(int i=1; i<=rsmd.getColumnCount();i++)
+					{
+						obj.put(rsmd.getColumnName(i), rs.getString(i));
+					}
+				}
+				
+				response = obj.toJSONString();
+				conn.close();
+				
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return response;
+			
+		}
+		
+		
+		
+		
 		// http://localhost:8080/JSPDay3RESTExample/rs/productsupplier/getpkgproductsbypkgId/{ packageId }
 		@GET
 		@Path("/productsupplier/getpkgproductsbypkgId/{ packageId }")
@@ -1700,7 +1813,7 @@ public class MyRestService {
 		@Produces(MediaType.TEXT_PLAIN)
 		public String getProdSupIdByIds(@PathParam("supplierId") int supplierId,@PathParam("productId") int productId)
 		{
-			String response =null;
+			String response ="";
 			try {
 				Class.forName("org.mariadb.jdbc.Driver");
 				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
