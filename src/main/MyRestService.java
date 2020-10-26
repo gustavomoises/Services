@@ -2291,6 +2291,148 @@ public class MyRestService {
 			}			
 			return response;		
 		}
+		
+		
+		// http://localhost:8080/JSPDay3RESTExample/rs/reward/getrewardnumberbyRwdIdCustId/{ rewardId }/{customerId}
+				@GET
+				@Path("/reward/getrewardnumberbyRwdIdCustId/{ rewardId }/{customerId}")
+				@Produces(MediaType.APPLICATION_JSON)
+				public String getRewardNumberbyRwdIdCustId(@PathParam("rewardId") int rewardId,@PathParam("customerId") int customerId)
+				{
+					String response =null;
+					try {
+						Class.forName("org.mariadb.jdbc.Driver");
+						
+						Connection conn1 = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						String sql1="SELECT RwdName FROM rewards  WHERE RewardId=?";
+						PreparedStatement stmt1 =conn1.prepareStatement(sql1);
+						stmt1.setInt(1, rewardId);
+						ResultSet rs1=stmt1.executeQuery();
+						JSONObject obj = new JSONObject();
+						if(rs1.next())
+						{
+							obj.put("RewardId", rewardId+"");
+							obj.put("CustomerId", customerId+"");
+							obj.put("RwdName", rs1.getString(1));
+							obj.put("RwdNumber", "");
+							obj.put("post", "0");
+						}
+						conn1.close();
+						
+						
+						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						String sql="SELECT rewards.RewardId,CustomerId,RwdNumber,RwdName FROM customers_rewards JOIN rewards on customers_rewards.rewardid=rewards.rewardid  WHERE rewards.RewardId=? and CustomerId=?";
+						PreparedStatement stmt =conn.prepareStatement(sql);
+						stmt.setInt(1, rewardId);
+						stmt.setInt(2, customerId);
+						ResultSet rs=stmt.executeQuery();
+						ResultSetMetaData rsmd = rs.getMetaData();
+
+						if(rs.next())
+						{
+							for(int i=1; i<=rsmd.getColumnCount();i++)
+							{
+								if (i==1 && i==2)
+									obj.put(rsmd.getColumnName(i), rs.getInt(i)+"");
+								else
+									obj.put(rsmd.getColumnName(i), rs.getString(i));
+							}
+							obj.put("post", "1");
+						}
+						
+						response = obj.toJSONString();
+						conn.close();
+						
+					} catch (ClassNotFoundException | SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					return response;
+					
+				}
+		
+				
+				//Update Customer Reward
+				// http://localhost:8080/JSPDay3RESTExample/rs/reward/postcustomerreward
+				@POST
+				@Path("/reward/postcustomerreward")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.TEXT_PLAIN)
+				
+				public String post(String jsonString)
+				{
+					JSONParser parser= new JSONParser();
+					JSONObject obj; 
+					String sql="UPDATE `customers_rewards` SET `RwdNumber`=? WHERE `RewardId`=? and CustomerId=?";
+					String message = null;
+					try {
+						obj= (JSONObject) parser.parse(jsonString);
+						Class.forName("org.mariadb.jdbc.Driver");
+						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						PreparedStatement stmt =conn.prepareStatement(sql);
+						stmt.setString(1, (String) obj.get("RwdNumber"));
+						stmt.setInt(2, Integer.parseInt((String) obj.get("RewardId")));
+						stmt.setInt(3, Integer.parseInt((String) obj.get("CustomerId")));
+
+						if(stmt.executeUpdate()>0)
+						{
+							message="Customer Reward updated successfully";
+						}
+						else
+						{
+							message="Customer Reward Update failed";
+						}
+						conn.close();
+					} catch (ClassNotFoundException | SQLException | ParseException e) {
+						e.printStackTrace();
+					}
+					return message;
+				}
+				
+				//Insert Customer Reward
+				// http://localhost:8080/JSPDay3RESTExample/rs/reward/putcustomerreward
+				@PUT
+				@Path("/reward/putcustomerreward")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.TEXT_PLAIN)
+				
+				public String putCustomerReward(String jsonString)
+				{
+					JSONParser parser= new JSONParser();
+					JSONObject obj; 
+					String sql="INSERT INTO `customers_rewards`( `RewardId`, `CustomerId`,`RwdNumber`) VALUES (?,?,?)";
+					String message = null;
+					try {
+						obj= (JSONObject) parser.parse(jsonString);
+						Class.forName("org.mariadb.jdbc.Driver");
+						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						PreparedStatement stmt =conn.prepareStatement(sql);
+						stmt.setInt(1, Integer.parseInt((String) obj.get("rewardId")));
+						stmt.setInt(2, Integer.parseInt((String) obj.get("customerId")));
+						String rwdNumber = (String) obj.get("rwdNumber");
+						if (rwdNumber.equals("null")|| rwdNumber==null ||  rwdNumber.equals("")|| rwdNumber.length()==0)
+							message="Customer Reward inserted successfully 0 ";
+						else
+						{
+							stmt.setString(3, (String) obj.get("RwdNumber"));
+							if(stmt.executeUpdate()>0)
+							{
+								message="Customer Reward inserted successfully";
+							}
+							else
+							{
+								message=" Customer Reward Insert failed";
+							}
+						}
+
+						conn.close();
+					} catch (ClassNotFoundException | SQLException | ParseException e) {
+						e.printStackTrace();
+					}
+					return message;
+				}
+				
 	//SUPPLIER---------------------------------------------------------------------------------------------------------------------------
 
 		 //Find next supplier Id from Database
