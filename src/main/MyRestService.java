@@ -15,7 +15,9 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -125,6 +127,55 @@ public class MyRestService {
 		
 		return "{ 'message':'"+message+"' }";
 	}
+	
+
+	// http://localhost:8080/JSPDay3RESTExample/rs/package/putpackage
+	@PUT
+	@Path("/package/putpackage")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	
+	public String putPackage(String jsonString)
+	{
+		JSONParser parser= new JSONParser();
+		JSONObject obj; 
+		String sql="INSERT INTO `packages`(`PkgAgencyCommission`, `PkgBasePrice`, `PkgDesc`, `PkgName` ) VALUES (?,?,?,?)";
+		String message = null;
+		try {
+			obj= (JSONObject) parser.parse(jsonString);
+			Class.forName("org.mariadb.jdbc.Driver");
+			Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+			PreparedStatement stmt =conn.prepareStatement(sql);
+//			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			stmt.setFloat(1, (Float.parseFloat(obj.get("packCommission").toString())));  
+			stmt.setFloat(2, (Float.parseFloat(obj.get("packPrice").toString())));
+			stmt.setString(3, (String) obj.get("packDesc"));
+//			stmt.setDate(5, java.sql.Date.valueOf(obj.get("packEndDate").toString()));			
+			stmt.setString(4, (String) obj.get("packName"));
+//			stmt.setDate(7, java.sql.Date.valueOf(obj.get("packStartDate").toString()));
+			if(stmt.executeUpdate()>0)
+			{
+				message="Package inserted successfully";
+			}
+			else
+			{
+				message="Package Insert failed";
+			}
+			conn.close();
+			
+			//ResultSet rs=stmt.executeQuery();
+		} catch (ClassNotFoundException | SQLException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+				
+		
+		
+		return "{ 'message':'"+message+"' }";
+	}
+	
+
+	
 	
 	// http://localhost:8080/JSPDay3RESTExample/rs/affiliation/deleteaffiliation/APEGA
 	
