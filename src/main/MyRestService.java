@@ -1513,7 +1513,7 @@ public class MyRestService {
 				Class.forName("org.mariadb.jdbc.Driver");
 				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
 				Statement stmt= conn.createStatement();
-				ResultSet rs = stmt.executeQuery("Select * from ProdPackages");
+				ResultSet rs = stmt.executeQuery("Select * from Packages");
 				ResultSetMetaData rsmd = rs.getMetaData();
 				
 				JSONArray jsonArray = new JSONArray();
@@ -1551,7 +1551,7 @@ public class MyRestService {
 			try {
 				Class.forName("org.mariadb.jdbc.Driver");
 				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
-				String sql="select * from ProdPackages where PackageId=?";
+				String sql="select * from Packages where PackageId=?";
 				PreparedStatement stmt =conn.prepareStatement(sql);
 				stmt.setInt(1,packageId);
 				ResultSet rs=stmt.executeQuery();
