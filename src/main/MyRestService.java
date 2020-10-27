@@ -7,6 +7,7 @@
 //10/26/2020<<11:06 am --Customer Reward added - Gustavo Moises
 //10/26/2020<<08:06 pm --PutPackage added - Robert
 //10/27/2020<<10:24 am --Customer Reward added update - Gustavo Moises
+//10/27/2020<<03:27 pm --PostPackage added - Robert
 
 package main;
 
@@ -1525,7 +1526,6 @@ public class MyRestService {
 				Class.forName("org.mariadb.jdbc.Driver");
 				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
 				PreparedStatement stmt =conn.prepareStatement(sql);
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 				String startDate = obj.get("packEndDate").toString();
 				String endDate = obj.get("packEndDate").toString();
 				
@@ -1534,7 +1534,7 @@ public class MyRestService {
 				stmt.setString(3, (String) obj.get("packDesc"));
 				stmt.setDate(5, java.sql.Date.valueOf(endDate));			
 				stmt.setString(4, (String) obj.get("packName"));
-				stmt.setDate(6, java.sql.Date.valueOf(startDate));
+				stmt.setDate(6, java.sql.Date.valueOf	(startDate));
 				if(stmt.executeUpdate()>0)
 				{
 					message="Package inserted successfully";
@@ -1557,6 +1557,55 @@ public class MyRestService {
 		}
 		
 
+		// http://localhost:8080/JSPDay3RESTExample/rs/package/postpackage
+		@POST
+		@Path("/package/postpackage")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		
+		public String postPackage(String jsonString) throws java.text.ParseException
+		{
+			JSONParser parser= new JSONParser();
+			JSONObject obj; 
+			String sql="UPDATE `packages` SET `PkgAgencyCommission`=?, `PkgBasePrice`=?, `PkgDesc`=?, `PkgName`=?, `PkgEndDate`=?, `PkgStartDate`=?  WHERE `PackageId`=? ";
+			String message = null;
+			try {
+				obj= (JSONObject) parser.parse(jsonString);
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+				PreparedStatement stmt =conn.prepareStatement(sql);
+				String startDate = obj.get("packEndDate").toString();
+				String endDate = obj.get("packEndDate").toString();
+				
+				stmt.setFloat(1, (Float.parseFloat(obj.get("packCommission").toString())));  
+				stmt.setFloat(2, (Float.parseFloat(obj.get("packPrice").toString())));
+				stmt.setString(3, (String) obj.get("packDesc"));
+				stmt.setDate(5, java.sql.Date.valueOf(endDate));			
+				stmt.setString(4, (String) obj.get("packName"));
+				stmt.setDate(6, java.sql.Date.valueOf(startDate));
+				stmt.setInt(7, Integer.parseInt(obj.get("packageId").toString()));
+				if(stmt.executeUpdate()>0)
+				{
+					message="Package updated successfully";
+				}
+				else
+				{
+					message="Package Update failed";
+				}
+				conn.close();
+				
+				//ResultSet rs=stmt.executeQuery();
+			} catch (ClassNotFoundException | SQLException | ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+								
+			
+			return "{ 'message':'"+message+"' }";
+		}
+
+		
+		
 		// http://localhost:8080/JSPDay3RESTExample/rs/package/getpackages
 		
 		@GET
