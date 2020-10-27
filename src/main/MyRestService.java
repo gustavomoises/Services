@@ -1574,7 +1574,7 @@ public class MyRestService {
 				Class.forName("org.mariadb.jdbc.Driver");
 				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
 				PreparedStatement stmt =conn.prepareStatement(sql);
-				String startDate = obj.get("packEndDate").toString();
+				String startDate = obj.get("packStartDate").toString();
 				String endDate = obj.get("packEndDate").toString();
 				
 				stmt.setFloat(1, (Float.parseFloat(obj.get("packCommission").toString())));  
