@@ -5,6 +5,8 @@
 //10/25/2020 << Version as of Sunday, October 25th, 3:46 pm --  Fee section added - Lisa Saffel
 // rob's changes
 //10/26/2020<<11:06 am --Customer Reward added - Gustavo Moises
+//10/26/2020<<08:06 pm --PutPackage added - Robert
+//10/27/2020<<10:24 am --Customer Reward added update - Gustavo Moises
 
 package main;
 
@@ -129,53 +131,6 @@ public class MyRestService {
 	}
 	
 
-	// http://localhost:8080/JSPDay3RESTExample/rs/package/putpackage
-	@PUT
-	@Path("/package/putpackage")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	
-	public String putPackage(String jsonString) throws java.text.ParseException
-	{
-		JSONParser parser= new JSONParser();
-		JSONObject obj; 
-		String sql="INSERT INTO `packages`(`PkgAgencyCommission`, `PkgBasePrice`, `PkgDesc`, `PkgName`, `PkgEndDate`, `PkgStartDate`  ) VALUES (?,?,?,?,?,?)";
-		String message = null;
-		try {
-			obj= (JSONObject) parser.parse(jsonString);
-			Class.forName("org.mariadb.jdbc.Driver");
-			Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
-			PreparedStatement stmt =conn.prepareStatement(sql);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			String startDate = obj.get("packEndDate").toString();
-			String endDate = obj.get("packEndDate").toString();
-			
-			stmt.setFloat(1, (Float.parseFloat(obj.get("packCommission").toString())));  
-			stmt.setFloat(2, (Float.parseFloat(obj.get("packPrice").toString())));
-			stmt.setString(3, (String) obj.get("packDesc"));
-			stmt.setDate(5, java.sql.Date.valueOf(endDate));			
-			stmt.setString(4, (String) obj.get("packName"));
-			stmt.setDate(6, java.sql.Date.valueOf(startDate));
-			if(stmt.executeUpdate()>0)
-			{
-				message="Package inserted successfully";
-			}
-			else
-			{
-				message="Package Insert failed";
-			}
-			conn.close();
-			
-			//ResultSet rs=stmt.executeQuery();
-		} catch (ClassNotFoundException | SQLException | ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-				
-		
-		
-		return "{ 'message':'"+message+"' }";
-	}
 	
 
 	
@@ -1553,6 +1508,53 @@ public class MyRestService {
 		}
 // End of FEE section 
 //PACKAGE-------------------------------------------------------------------------------------------------------------------
+		// http://localhost:8080/JSPDay3RESTExample/rs/package/putpackage
+		@PUT
+		@Path("/package/putpackage")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		
+		public String putPackage(String jsonString) throws java.text.ParseException
+		{
+			JSONParser parser= new JSONParser();
+			JSONObject obj; 
+			String sql="INSERT INTO `packages`(`PkgAgencyCommission`, `PkgBasePrice`, `PkgDesc`, `PkgName`, `PkgEndDate`, `PkgStartDate`  ) VALUES (?,?,?,?,?,?)";
+			String message = null;
+			try {
+				obj= (JSONObject) parser.parse(jsonString);
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+				PreparedStatement stmt =conn.prepareStatement(sql);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				String startDate = obj.get("packEndDate").toString();
+				String endDate = obj.get("packEndDate").toString();
+				
+				stmt.setFloat(1, (Float.parseFloat(obj.get("packCommission").toString())));  
+				stmt.setFloat(2, (Float.parseFloat(obj.get("packPrice").toString())));
+				stmt.setString(3, (String) obj.get("packDesc"));
+				stmt.setDate(5, java.sql.Date.valueOf(endDate));			
+				stmt.setString(4, (String) obj.get("packName"));
+				stmt.setDate(6, java.sql.Date.valueOf(startDate));
+				if(stmt.executeUpdate()>0)
+				{
+					message="Package inserted successfully";
+				}
+				else
+				{
+					message="Package Insert failed";
+				}
+				conn.close();
+				
+				//ResultSet rs=stmt.executeQuery();
+			} catch (ClassNotFoundException | SQLException | ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+					
+			
+			
+			return "{ 'message':'"+message+"' }";
+		}
 		
 
 		// http://localhost:8080/JSPDay3RESTExample/rs/package/getpackages
@@ -2420,25 +2422,48 @@ public class MyRestService {
 					JSONParser parser= new JSONParser();
 					JSONObject obj; 
 					String sql="UPDATE `customers_rewards` SET `RwdNumber`=? WHERE `RewardId`=? and CustomerId=?";
+					String sql1="Delete from `customers_rewards` WHERE `RewardId`=? and CustomerId=?";
 					String message = null;
 					try {
 						obj= (JSONObject) parser.parse(jsonString);
 						Class.forName("org.mariadb.jdbc.Driver");
 						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
 						PreparedStatement stmt =conn.prepareStatement(sql);
-						stmt.setString(1, (String) obj.get("RwdNumber"));
-						stmt.setInt(2, Integer.parseInt((String) obj.get("RewardId")));
-						stmt.setInt(3, Integer.parseInt((String) obj.get("CustomerId")));
-
-						if(stmt.executeUpdate()>0)
+						Connection conn1 = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						PreparedStatement stmt1 =conn1.prepareStatement(sql1);
+						String rwdNumber = (String) obj.get("rwdNumber");
+						if (rwdNumber.equals("null")|| rwdNumber==null ||  rwdNumber.equals("")|| rwdNumber.length()==0)
 						{
-							message="Customer Reward updated successfully";
+							stmt1.setInt(1, Integer.parseInt((String) obj.get("rewardId")));
+							stmt1.setInt(2, Integer.parseInt((String) obj.get("customerId")));
+
+							
+							if(stmt1.executeUpdate()>0)
+							{
+								message="Customer Reward updated successfully";
+							}
+							else
+							{
+								message="Customer Reward Update failed";
+							}
 						}
 						else
 						{
-							message="Customer Reward Update failed";
+							stmt.setString(1, (String) obj.get("rwdNumber"));
+							stmt.setInt(2, Integer.parseInt((String) obj.get("rewardId")));
+							stmt.setInt(3, Integer.parseInt((String) obj.get("customerId")));
+
+							if(stmt.executeUpdate()>0)
+							{
+								message="Customer Reward updated successfully";
+							}
+							else
+							{
+								message="Customer Reward Update failed";
+							}
 						}
 						conn.close();
+						conn1.close();
 					} catch (ClassNotFoundException | SQLException | ParseException e) {
 						e.printStackTrace();
 					}
@@ -2470,7 +2495,7 @@ public class MyRestService {
 							message="Customer Reward inserted successfully 0 ";
 						else
 						{
-							stmt.setString(3, (String) obj.get("RwdNumber"));
+							stmt.setString(3, (String) obj.get("rwdNumber"));
 							if(stmt.executeUpdate()>0)
 							{
 								message="Customer Reward inserted successfully";
@@ -2487,6 +2512,7 @@ public class MyRestService {
 					}
 					return message;
 				}
+				
 				
 	//SUPPLIER---------------------------------------------------------------------------------------------------------------------------
 
