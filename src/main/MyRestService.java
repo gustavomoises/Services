@@ -135,24 +135,27 @@ public class MyRestService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	
-	public String putPackage(String jsonString)
+	public String putPackage(String jsonString) throws java.text.ParseException
 	{
 		JSONParser parser= new JSONParser();
 		JSONObject obj; 
-		String sql="INSERT INTO `packages`(`PkgAgencyCommission`, `PkgBasePrice`, `PkgDesc`, `PkgName` ) VALUES (?,?,?,?)";
+		String sql="INSERT INTO `packages`(`PkgAgencyCommission`, `PkgBasePrice`, `PkgDesc`, `PkgName`, `PkgEndDate`, `PkgStartDate`  ) VALUES (?,?,?,?,?,?)";
 		String message = null;
 		try {
 			obj= (JSONObject) parser.parse(jsonString);
 			Class.forName("org.mariadb.jdbc.Driver");
 			Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
 			PreparedStatement stmt =conn.prepareStatement(sql);
-//			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			String startDate = obj.get("packEndDate").toString();
+			String endDate = obj.get("packEndDate").toString();
+			
 			stmt.setFloat(1, (Float.parseFloat(obj.get("packCommission").toString())));  
 			stmt.setFloat(2, (Float.parseFloat(obj.get("packPrice").toString())));
 			stmt.setString(3, (String) obj.get("packDesc"));
-//			stmt.setDate(5, java.sql.Date.valueOf(obj.get("packEndDate").toString()));			
+			stmt.setDate(5, java.sql.Date.valueOf(endDate));			
 			stmt.setString(4, (String) obj.get("packName"));
-//			stmt.setDate(7, java.sql.Date.valueOf(obj.get("packStartDate").toString()));
+			stmt.setDate(6, java.sql.Date.valueOf(startDate));
 			if(stmt.executeUpdate()>0)
 			{
 				message="Package inserted successfully";
