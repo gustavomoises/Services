@@ -8,6 +8,7 @@
 //10/26/2020<<08:06 pm --PutPackage added - Robert
 //10/27/2020<<10:24 am --Customer Reward added update - Gustavo Moises
 //10/27/2020<<03:27 pm --PostPackage added - Robert
+//10/28/2020<<04:37 pm --DeletePAckage added - Robert
 
 package main;
 
@@ -1605,6 +1606,45 @@ public class MyRestService {
 		}
 
 		
+		// http://localhost:8080/JSPDay3RESTExample/rs/package/deletepackage
+		@DELETE
+		@Path("/package/deletepackage/{ packageId }")
+		//@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.TEXT_PLAIN)
+		
+		public String deletePackage(@PathParam("packageId") int packageId)
+		{
+		
+			String message = "";
+			
+		try {
+
+			Class.forName("org.mariadb.jdbc.Driver");
+			Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+			String sql="Delete from `packages` where PackageId=?";
+			PreparedStatement stmt =conn.prepareStatement(sql);
+			stmt.setInt(1, packageId);
+			if(stmt.executeUpdate()>0)
+			{
+				message="Package Deleted Successfully";
+			}
+			else
+			{
+				message="Package Delete failed.";
+			}
+			conn.close();
+			
+			
+		} catch (ClassNotFoundException | SQLException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return message;
+		}
+		
+				
+		
 		
 		// http://localhost:8080/JSPDay3RESTExample/rs/package/getpackages
 		
@@ -1790,9 +1830,9 @@ public class MyRestService {
 				
 				
 				
-				// http://localhost:8080/JSPDay3RESTExample/rs/product/deleteproduct/{ productId }
+				// http://localhost:8080/JSPDay3RESTExample/rs/product/deleteproduct
 				@DELETE
-				@Path("/product/deleteproduct/{ productId }")
+				@Path("/product/deleteproduct")
 				//@Consumes({MediaType.APPLICATION_JSON})
 				@Produces(MediaType.TEXT_PLAIN)
 				
