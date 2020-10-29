@@ -11,6 +11,7 @@
 //10/28/2020<<04:37 pm --DeletePAckage added - Robert
 // Lisa comment Oct 28 6:18 pm
 // Lisa comment Oct 28 6:38 pm
+//Suvanjan Shrestha 6:52 pm
 
 package main;
 
@@ -3098,5 +3099,118 @@ public String getSupplierByProductId()
 			return response;			
 		}
 		
+//Sk's Code
+	// All Products and Suppliers
+		// http://localhost:8080/JSPDay3RESTExample/rs/product/getproductssuppliers
+		@GET
+		@Path("/product/getproductssuppliers")
+		@Produces(MediaType.APPLICATION_JSON)
+		public String getProductsSuppliers() {
+			String response = null;
+			try {
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv",
+						"password");
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery("Select * from Products_Suppliers");
+				ResultSetMetaData rsmd = rs.getMetaData();
+
+				JSONArray jsonArray = new JSONArray();
+
+				while (rs.next()) {
+					JSONObject obj = new JSONObject();
+					for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+						obj.put(rsmd.getColumnName(i), rs.getString(i));
+					}
+					jsonArray.add(obj);
+				}
+
+				response = jsonArray.toJSONString();
+				conn.close();
+
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			return response;
+
+		}
+
+		// All Products and Suppliers
+		// http://localhost:8080/JSPDay3RESTExample/rs/getproductsandsuppliers
+
+		@GET
+		@Path("/getproductsandsuppliers")
+		@Produces(MediaType.APPLICATION_JSON)
+		public String getProductsAndSuppliers() {
+			String response = null;
+			try {
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv",
+						"password");
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT ps.ProductSupplierId, ps.ProductId, "
+						+ "ps.SupplierId, p.ProdName, s.SupName FROM Products p "
+						+ "INNER JOIN Products_Suppliers ps ON p.ProductId = ps.ProductId "
+						+ "INNER JOIN Suppliers s ON ps.SupplierId = s.SupplierId Order By p.prodName");
+				ResultSetMetaData rsmd = rs.getMetaData();
+
+				JSONArray jsonArray = new JSONArray();
+
+				while (rs.next()) {
+					JSONObject obj = new JSONObject();
+					for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+						obj.put(rsmd.getColumnName(i), rs.getString(i));
+					}
+					jsonArray.add(obj);
+				}
+
+				response = jsonArray.toJSONString();
+				conn.close();
+
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			return response;
+
+		}
+
+		// Get all Suppliers
+		// http://localhost:8080/JSPDay3RESTExample/rs/supplier/getsupplierswithoutproduct/(productId)
+		
+		@GET
+		@Path("/supplier/getsupplierswithoutproduct/{ productId }")
+		@Produces(MediaType.APPLICATION_JSON)
+		public String getSuppliersWithoutProduct(@PathParam("productId") int productId) {
+			String response = null;
+			try {
+				Class.forName("org.mariadb.jdbc.Driver");
+				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv",
+						"password");
+				String sql = "SELECT s.SupplierId, s.SupName FROM Products_suppliers ps INNER JOIN Suppliers s ON ps.SupplierId=s.SupplierId WHERE ps.ProductId<>? ORDER BY s.SupName";
+				PreparedStatement stmt = conn.prepareStatement(sql);
+				stmt.setInt(1, productId);
+				ResultSet rs = stmt.executeQuery();
+				ResultSetMetaData rsmd = rs.getMetaData();
+				JSONArray jsonArray = new JSONArray();
+
+				while (rs.next()) {
+					JSONObject obj = new JSONObject();
+					for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+						obj.put(rsmd.getColumnName(i), rs.getString(i));
+					}
+					jsonArray.add(obj);
+				}
+				response = jsonArray.toJSONString();
+				conn.close();
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return response;
+		}
 	
 }
