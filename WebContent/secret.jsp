@@ -27,7 +27,7 @@
 	function loadRewards()
 	{
 		var rewardselect=$("#rewardlist")[0];
-		var url ="http://localhost:8080/JSPDay3RESTExample/rs/reward/getrewards";  
+		var url ="http://localhost:8081/JSPDay3RESTExample/rs/reward/getrewards";  
 		$.get(url, function(json){
 			
 			for(i=0;i<json.length;i++)
@@ -59,7 +59,7 @@
 			}
 		}
 		//CustId from session
-		req.open("GET", "http://localhost:8080/JSPDay3RESTExample/rs/reward/getrewardnumberbyRwdIdCustId/" + rewardId+ "/"+<%=CustId%>); 
+		req.open("GET", "http://localhost:8081/JSPDay3RESTExample/rs/reward/getrewardnumberbyRwdIdCustId/" + rewardId+ "/"+<%=CustId%>); 
 		req.send();
 
 	}
@@ -85,7 +85,7 @@
 		console.log(JSON.stringify(mydata));
 
 		$.ajax({
-			url:"http://localhost:8080/JSPDay3RESTExample/rs/reward/postcustomerreward",
+			url:"http://localhost:8081/JSPDay3RESTExample/rs/reward/postcustomerreward",
 			type:"POST",
 			data:JSON.stringify(mydata),
 			complete:function(req,stat){ $("#message").html(stat); },
@@ -115,7 +115,7 @@
 		console.log(JSON.stringify(mydata));
 
 		$.ajax({
-			url:"http://localhost:8080/JSPDay3RESTExample/rs/reward/putcustomerreward",
+			url:"http://localhost:8081/JSPDay3RESTExample/rs/reward/putcustomerreward",
 			type:"PUT",
 			data:JSON.stringify(mydata),
 			complete:function(req,stat){ $("#message").html(stat); },
