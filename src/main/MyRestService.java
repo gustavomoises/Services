@@ -3178,7 +3178,7 @@ public String getSupplierByProductId()
 
 		}
 
-		// Get all Suppliers
+		// Get all Suppliers without certain product
 		// http://localhost:8080/JSPDay3RESTExample/rs/supplier/getsupplierswithoutproduct/(productId)
 		
 		@GET
@@ -3190,7 +3190,7 @@ public String getSupplierByProductId()
 				Class.forName("org.mariadb.jdbc.Driver");
 				Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv",
 						"password");
-				String sql = "SELECT s.SupplierId, s.SupName FROM Products_suppliers ps INNER JOIN Suppliers s ON ps.SupplierId=s.SupplierId WHERE ps.ProductId<>? ORDER BY s.SupName";
+				String sql = "SELECT SupName, SupplierId FROM Suppliers WHERE SupplierId NOT IN(SELECT ps.SupplierId FROM Products_Suppliers ps INNER JOIN Suppliers s ON ps.SupplierId = s.SupplierId WHERE ps.ProductId=?)Order By SupName";
 				PreparedStatement stmt = conn.prepareStatement(sql);
 				stmt.setInt(1, productId);
 				ResultSet rs = stmt.executeQuery();
@@ -3212,5 +3212,40 @@ public String getSupplierByProductId()
 			}
 			return response;
 		}
+		
+		
+		// http://localhost:8080/JSPDay3RESTExample/rs/productssuppliers/putproductsandsuppliers
+				@PUT
+				@Path("/productssuppliers/putproductsandsuppliers")
+				@Consumes(MediaType.APPLICATION_JSON)
+				@Produces(MediaType.APPLICATION_JSON)
+				
+				public String putProductsAndSuppliers(String jsonString) throws java.text.ParseException
+				{
+					JSONParser parser= new JSONParser();
+					JSONObject obj; 
+					String sql="INSERT INTO `products_suppliers`(`ProductId`, `SupplierId`) VALUES (?,?)";
+					String message = null;
+					try {
+						obj= (JSONObject) parser.parse(jsonString);
+						Class.forName("org.mariadb.jdbc.Driver");
+						Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/TravelExperts", "harv", "password");
+						PreparedStatement stmt =conn.prepareStatement(sql);
+						stmt.setInt(1, Integer.parseInt((String)obj.get("ProductId")));
+						stmt.setInt(2, Integer.parseInt((String)obj.get("SupplierId")));
+						if(stmt.executeUpdate()>0)
+						{
+							message="Data inserted successfully";
+						}
+						else
+						{
+							message="Data Insert failed";
+						}
+						conn.close();
+					} catch (ClassNotFoundException | SQLException | ParseException e) {
+						e.printStackTrace();
+					}
+					return "{ 'message':'" + message + "' }";
+				}
 	
 }
